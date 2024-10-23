@@ -33,7 +33,7 @@ function initApp() {
     time: null,
     firstTime: localStorage.getItem("first_time") === null,
     activeMenu: 'pos',
-    showOptions: true,
+    showOptions: false,
     loadingSampleData: false,
     products: [],
     keyword: "",
