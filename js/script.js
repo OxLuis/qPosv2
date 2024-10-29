@@ -40,7 +40,7 @@ function initApp() {
     cart: [],
     isShowModalReceipt: false,
     isModalBill: false,
-    currentStep: 1,
+    currentStep: 0,
     documento: '',
     nombres: '',
     email: '',
@@ -58,29 +58,7 @@ function initApp() {
     },
     async startWithSampleData() {
       try {
-        const response = await fetch("http://mails.trovari.com.py/wsTrovariApp/webresources/AppServ/buscar-productos", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            "pCodEmpresa": "1",
-            "pCodProducto": null,
-            "pDescripcion": null
-          })
-        });
-
-        // Verificamos si la respuesta fue exitosa
-        if (!response.ok) {
-          throw new Error('Error en la respuesta del servidor');
-        }
-
-        const data = await response.json();
-        this.products = data.products;
-
-        for (let product of data.products) {
-          await this.db.addProduct(product);
-        }
+        this.getProductsFromAPI()
       } catch (error) {
         console.error('Error fetching products:', error);
         // Cargar datos de sample.json en caso de error
@@ -100,6 +78,31 @@ function initApp() {
       }
 
       this.setFirstTime(false);
+    },
+    async getProductsFromAPI(){
+      const response = await fetch("http://mails.trovari.com.py/wsTrovariApp/webresources/AppServ/buscar-productos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "pCodEmpresa": "1",
+          "pCodProducto": null,
+          "pDescripcion": null
+        })
+      });
+
+      // Verificamos si la respuesta fue exitosa
+      if (!response.ok) {
+        throw new Error('Error en la respuesta del servidor');
+      }
+
+      const data = await response.json();
+      this.products = data.products;
+
+      for (let product of data.products) {
+        await this.db.addProduct(product);
+      }
     },
     startBlank() {
       this.setFirstTime(false);
