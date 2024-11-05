@@ -33,17 +33,19 @@ function initApp() {
     time: null,
     firstTime: localStorage.getItem("first_time") === null,
     activeMenu: 'pos',
-    showOptions: false,
+    showOptions: true,
     loadingSampleData: false,
     products: [],
     keyword: "",
     cart: [],
     isShowModalReceipt: false,
-    isModalBill: false,
+    isShowModalPayment: false,
+    isShowModalBill: false,
     currentStep: 0,
     documento: '',
-    nombres: '',
+    nombre: '',
     email: '',
+    ocasional: false,
     receiptNo: null,
     receiptDate: null,
     userOption: localStorage.getItem('userOption'),
@@ -80,7 +82,7 @@ function initApp() {
       this.setFirstTime(false);
     },
     async getProductsFromAPI(){
-      const response = await fetch("http://mails.trovari.com.py/wsTrovariApp/webresources/AppServ/buscar-productos", {
+      const response = await fetch("http://mail.trovari.com.py/wsTrovariApp/webresources/AppServ/buscar-productos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,9 +100,8 @@ function initApp() {
       }
 
       const data = await response.json();
-      this.products = data.products;
 
-      for (let product of data.products) {
+      for (let product of data) {
         await this.db.addProduct(product);
       }
     },
@@ -161,15 +162,40 @@ function initApp() {
         0
       );
     },
+    canContinue(){
+      if(this.nombre){
+        return true;
+      }
+    },
     submitable() {
       return this.cart.length > 0;
     },
     modalBill(){
-      this.isModalBill = true;
+      this.isShowModalBill  = true;
       this.inputDocumento = true;
-      console.log(this.isModalBill)
+      console.log(this.isShowModalBill )
     },
     nextStep() {
+      //Verifica si es el primer paso para verificar que el documento esté seteado
+      if(this.currentStep ==  1 && this.documento == ''){ 
+        alert('Debe de completar todo los campos requeridos'); 
+        return;
+      } else if (this.currentStep == 1 && this.documento != ''){
+        //Hace la peticion al servidor para verificar el rud
+        alert('LLamando a la funcion que llama al ajax');
+        this.getClientBillingData();
+      }
+
+      
+      
+      if(this.ocasional && this.currentStep == 2){
+        this.saveBillingData(); // Guarda los datos en localStorage
+        this.makePayment(); // Cuando llegues al último paso
+        return;
+      }
+
+      
+
       if (this.currentStep < 3) {
         this.currentStep += 1;
       } else {
@@ -178,11 +204,34 @@ function initApp() {
       }
     },
     previousStep() {
-      if (this.currentStep > 1) {
+      if (this.currentStep > 0  ) {
         this.currentStep -= 1;
       }
     },
+    async getClientBillingData(){
+      alert('Ejecutando getClienteBillingData');
+      const response = await fetch("http://mail.trovari.com.py/wsTrovariApp/webresources/AppServ/buscar-cliente", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          "pCodEmpresa": "1",
+          "pDocumento": this.documento
+        })
+      });
+    },
+    cancelOcasionalClient(){
+      this.ocasional = false;
+      this.currentStep = 0;
+    }, 
+    ocasionalClient(){
+      this.currentStep = 2; 
+      this.ocasional = true;
+    },
     makePayment(){
+      this.isShowModalBill  = false;
+      this.isShowModalPayment = true;
       const combinedDataJSON = this.createCombinedJSON();
       console.log(combinedDataJSON);
       alert('Realizando el pago en POS')
@@ -197,7 +246,7 @@ function initApp() {
       this.isShowModalReceipt = false;
     },
     closeModalBill() {
-      this.isModalBill = false;
+      this.isShowModalBill  = false;
     },
     dateFormat(date) {
       const formatter = new Intl.DateTimeFormat('id', { dateStyle: 'short', timeStyle: 'short' });
@@ -243,8 +292,9 @@ function initApp() {
     saveBillingData() {
       const billingData = {
         documento: this.documento,
-        nombres: this.nombres,
+        nombre: this.nombre,
         email: this.email,
+        ocasional: this.ocasional
       };
       localStorage.setItem('billingData', JSON.stringify(billingData));
     },
