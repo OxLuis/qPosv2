@@ -116,9 +116,15 @@ function initApp() {
         localStorage.setItem("first_time", new Date().getTime());
       }
     },
-    filteredProducts() {
+    /* filteredProducts() {
       const rg = this.keyword ? new RegExp(this.keyword, "gi") : null;
       return this.products.filter((p) => !rg || p.descripcion.match(rg)); // Usar 'descripcion' en lugar de 'name'
+    }, */
+    filteredProducts() {
+      const rg = this.keyword ? new RegExp(this.keyword, "gi") : null;
+      return this.products.filter((p) =>
+          ((!rg || p.descripcion.match(rg)) && (p.existencia > 0 || p.des_marca === "CAFE FICHA"))
+      );
     },
     addToCart(product) {
       const index = this.findCartIndex(product);
@@ -177,8 +183,8 @@ function initApp() {
     },
     nextStep() {
       //Verifica si es el primer paso para verificar que el documento esté seteado
-      if(this.currentStep ==  1 && this.documento == ''){ 
-        alert('Debe de completar todo los campos requeridos'); 
+      if(this.currentStep ==  1 && this.documento == ''){
+        alert('Debe de completar todo los campos requeridos');
         return;
       } else if (this.currentStep == 1 && this.documento != ''){
         //Hace la peticion al servidor para verificar el rud
@@ -186,15 +192,17 @@ function initApp() {
         this.getClientBillingData();
       }
 
-      
-      
-      if(this.ocasional && this.currentStep == 2){
+
+
+      if(this.ocasional && this.currentStep == 2 && this.nombre != ''){
         this.saveBillingData(); // Guarda los datos en localStorage
         this.makePayment(); // Cuando llegues al último paso
         return;
+      }else if(this.nombre == ''){
+        alert('Debe de completar el campo de nombre para continuar');
       }
 
-      
+
 
       if (this.currentStep < 3) {
         this.currentStep += 1;
@@ -224,9 +232,9 @@ function initApp() {
     cancelOcasionalClient(){
       this.ocasional = false;
       this.currentStep = 0;
-    }, 
+    },
     ocasionalClient(){
-      this.currentStep = 2; 
+      this.currentStep = 2;
       this.ocasional = true;
     },
     makePayment(){

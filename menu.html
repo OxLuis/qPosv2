@@ -342,7 +342,7 @@
                     </button>
                     <!-- Botón para Llevar -->
                     <button x-on:click="selectOption('llevar')"
-                        class="flex flex-col items-center w-full mx-3 rounded-xl qpos-bg1 shadow-xl  focus:outline-none hover:bg-cyan-400 px-4 py-4">
+                        class="flex flex-col items-center w-full mx-3 rounded-xl qpos-bg1 shadow-xl focus:shadow-2xl hover:qpos-bg1 px-4 py-4">
                         <img src="./img/app/takeout.png" class="w-28" alt="">
                         <div class="pt-4">
                             <h6 class="text-gray-950 mb-0 font-semibold">Para llevar</h6>
@@ -368,28 +368,19 @@
             x-transition:enter-end="opacity-100 transform scale-100"
             x-transition:leave="transition ease-in duration-100"
             x-transition:leave-start="opacity-100 transform scale-100"
-            x-transition:leave-end="opacity-0 transform scale-90">
+            x-transition:leave-end="opacity-0 transform scale-90" style="width:650px">
                 <div id="receipt-content" class="text-left w-full text-sm p-6 overflow-auto">
                     <div x-show="currentStep === 0">
                     <div class="text-left">
-                        <button x-on:click="ocasionalClient()"
-                            class="text-left w-full mb-3 rounded-xl bg-blue-gray-500 text-white focus:outline-none hover:qpos-bg3 px-4 py-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block -mt-1 mr-2" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20" />
-                            </svg>
-                            Cliente Ocasional
+                      <button x-on:click="ocasionalClient()"
+                            class="text-left w-full mb-3 rounded-xl bg-white  shadow-xl hover:qpos-bg3 px-4 py-4 ">
+                            <h1 class="text-2xl font-semibold">Cliente Ocasional</h1>
                         </button>
-                        <button x-on:click="nextStep()"
-                            class="text-left w-full rounded-xl bg-blue-gray-500 text-white focus:outline-none hover:bg-teal-400 px-4 py-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block -mt-1 mr-2" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                            </svg>
-                            Factura con nombre
+                       <button x-on:click="nextStep()"
+                            class="w-full rounded-xl qpos-bg1 shadow-xl focus:bg-white hover:qpos-bg1 px-4 py-4 flex flex-row items-center">
+                            <h1 class="text-2xl font-semibold">Factura con nombre</h1>
                         </button>
+
                     </div>
                     </div>
                     <div x-show="currentStep === 1">
@@ -418,7 +409,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-4 w-full">
+                <div class="p-4 w-full" x-show="currentStep > 0">
                     <button class="bg-gray-300 text-black text-lg px-4 py-3 mb-2 rounded-2xl w-full focus:outline-none mr-2"
                     x-on:click="previousStep()" x-show="currentStep > 0 && ocasional == false ">VOLVER</button>
                     <button class="bg-gray-300 text-black text-lg px-4 py-3 mb-2 rounded-2xl w-full focus:outline-none mr-2"
@@ -431,40 +422,40 @@
 
         <div x-show="isShowModalPayment"
         class="fixed glass w-full h-screen left-0 top-0 z-10 flex flex-wrap justify-center content-center p-24">
-            <div class="w-96 rounded-3xl p-8 bg-white shadow-xl" style="width:550px">
+            <div class="w-96 rounded-3xl p-8 bg-white shadow-xl" style="width:650px">
                 <div class="text-center">
                     <h3 class="text-center text-2xl mb-8">¿Como deseas realizar el pago?</h3>
                 </div>
                 <div class="text-left flex flex-row">
                     <button x-on:click="selectPayment('debito')"
-                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:bg-teal-400 px-4 py-4">
-                        <img src="./img/app/eathere.png" class="w-28" alt="">
+                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                        <img src="./img/app/debit.png" class="w-28" alt="">
                         <div class="pt-4">
-                            <h6 class="text-gray-950 mb-0 font-semibold">Tarjeta de Débito</h6> <!-- Texto debajo del icono -->
+                            <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Tarjeta de Débito</h6> <!-- Texto debajo del icono -->
                         </div>
                     </button>
                     <button x-on:click="selectPayment('credito')"
-                        class="flex flex-col items-center w-full mx-3 rounded-xl qpos-bg1 shadow-xl  focus:outline-none hover:bg-cyan-400 px-4 py-4">
-                        <img src="./img/app/takeout.png" class="w-28" alt="">
+                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                        <img src="./img/app/credit.png" class="w-28" alt="">
                         <div class="pt-4">
-                            <h6 class="text-gray-950 mb-0 font-semibold">Tarjeta de Crédito</h6>
+                            <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Tarjeta de Crédito</h6>
                             <!-- Texto debajo del icono -->
                         </div>
                     </button>
                 </div>
-                <div class="text-left flex flex-row pt-3">
+                <div class="text-left flex flex-row pt-4">
                     <button x-on:click="selectPayment('debito')"
-                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:bg-teal-400 px-4 py-4">
-                        <img src="./img/app/eathere.png" class="w-28" alt="">
+                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                        <img src="./img/app/qr.png" class="w-28" alt="">
                         <div class="pt-4">
-                            <h6 class="text-gray-950 mb-0 font-semibold">Tarjeta de Débito</h6> <!-- Texto debajo del icono -->
+                            <h6 class="text-gray-950 mb-0 font-semibold text-2xl">QR en POS</h6> <!-- Texto debajo del icono -->
                         </div>
                     </button>
                     <button x-on:click="selectPayment('credito')"
-                        class="flex flex-col items-center w-full mx-3 rounded-xl qpos-bg1 shadow-xl  focus:outline-none hover:bg-cyan-400 px-4 py-4">
-                        <img src="./img/app/takeout.png" class="w-28" alt="">
+                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                        <img src="./img/app/cash.png" class="w-28" alt="">
                         <div class="pt-4">
-                            <h6 class="text-gray-950 mb-0 font-semibold">Tarjeta de Crédito</h6>
+                            <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Efectivo en caja</h6>
                             <!-- Texto debajo del icono -->
                         </div>
                     </button>
@@ -547,7 +538,7 @@
 			</div>
 		</div> -->
 
-    
+
 
     </div>
 
