@@ -11,6 +11,7 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <script src="./js/index-min.js"></script>
     <script src="./js/alpine.min.js"></script>
+    <script src="./js/lottie.min.js"></script>
     <link rel="stylesheet" href="./css/all.min.css">
 
     <script src="js/script.js"></script>
@@ -327,8 +328,9 @@
         <div x-show="showOptions"
             class="fixed glass w-full h-screen left-0 top-0 z-10 flex flex-wrap justify-center content-center p-24">
             <div class="w-96 rounded-3xl p-8 bg-white shadow-xl" style="width:550px">
-                <div class="text-center">
-                    <h3 class="text-center text-2xl mb-8">¿Qué prefieres?</h3>
+                <div class="text-center  mb-8 ">
+                    <h3 class="text-2xl font-semibold">¿Como te preparamos el pedido?</h3>
+                    <p>Contanos, ¿cómo preferís disfrutarlo? Elegí la opción que más te acomode, ¡sin estrés!</p>
                 </div>
                 <div class="text-left flex fle-row">
                     <!-- Botón para Comer Aquí -->
@@ -393,11 +395,13 @@
                     </div>
                     <div x-show="currentStep === 2">
                         <div>
-                            <h1 class="text-2xl font-bold">Nombres y apellidos</h1>
-                            <p class="pb-2 text-gray-600">Cuando su pedido esté listo lo llamaremos por este nombre</p>
+                            <div class="pb-4">
+                                <h3 class="text-3xl font-semibold mb-1">¿A nombre de quién?</h3>
+                                <p class="text-lg">Ingresá aquí el nombre o la razón para la factura, cuando tu pedido esté listo, te llamaremos por este nombre.</p>
+                            </div>
                             <input type="text"
                                 class="bg-white rounded-xl shadow text-lg full w-full h-16 py-2 pl-4 transition-shadow focus:shadow-2xl focus:outline-none"
-                                placeholder="Ingrese aquí su nombre y apellido" x-model="nombre" @input="nombre = nombre.toUpperCase()" />
+                                placeholder="Ingrese aquí su nombre" x-model="nombre" @input="nombre = nombre.toUpperCase()" />
                         </div>
                     </div>
                     <div x-show="currentStep === 3">
@@ -420,11 +424,27 @@
             </div>
         </div>
 
+
+
         <div x-show="isShowModalPayment"
-        class="fixed glass w-full h-screen left-0 top-0 z-10 flex flex-wrap justify-center content-center p-24">
-            <div class="w-96 rounded-3xl p-8 bg-white shadow-xl" style="width:650px">
-                <div class="text-center">
-                    <h3 class="text-center text-2xl mb-8">¿Como deseas realizar el pago?</h3>
+        class="fixed w-full h-screen left-0 top-0 z-10 flex flex-wrap justify-center content-center p-24">
+            <div x-show="isShowModalPayment" class="fixed glass w-full h-screen left-0 top-0 z-0"
+                x-on:click="closeModalPayment()" x-transition:enter="transition ease-out duration-100"
+                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0">
+            </div>
+            <div x-show="isShowModalPayment" class="w-96 rounded-3xl bg-white shadow-xl overflow-hidden z-10"
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="opacity-0 transform scale-90"
+            x-transition:enter-end="opacity-100 transform scale-100"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 transform scale-100"
+            x-transition:leave-end="opacity-0 transform scale-90" style="width:650px">
+            <div class="w-96 rounded-3xl p-8 bg-white w-full">
+                <div class="pb-4">
+                    <h3 class="text-3xl font-semibold mb-1">¿Cómo vas a pagar?</h3>
+                    <p class="text-lg">Elegí tu método de pago preferido, ¡y nos encargamos del resto!</p>
                 </div>
                 <div class="text-left flex flex-row">
                     <button x-on:click="selectPayment('debito')"
@@ -460,8 +480,80 @@
                         </div>
                     </button>
                 </div>
+
+            </div>
+                <div class="p-4 w-full" x-show="currentStep > 0">
+                    <button class="bg-gray-300 text-black text-lg px-4 py-3 mb-2 rounded-2xl w-full focus:outline-none mr-2"
+                    x-on:click="closeModalPayment()">CANCELAR</button>
+                </div>
             </div>
         </div>
+
+
+        <div x-show="isShowModalConfig"
+        class="fixed w-full h-screen left-0 top-0 z-10 flex flex-wrap justify-center content-center p-24">
+            <div x-show="isShowModalConfig" class="fixed glass w-full h-screen left-0 top-0 z-0"
+                x-on:click="closeModalConfig()" x-transition:enter="transition ease-out duration-100"
+                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0">
+            </div>
+            <div x-show="isShowModalConfig" class="w-96 rounded-3xl bg-white shadow-xl overflow-hidden z-10"
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="opacity-0 transform scale-90"
+            x-transition:enter-end="opacity-100 transform scale-100"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 transform scale-100"
+            x-transition:leave-end="opacity-0 transform scale-90" style="width:650px">
+            <div class="w-96 rounded-3xl p-8 bg-white w-full">
+                <div class="pb-4">
+                    <h3 class="text-3xl font-semibold mb-1">¿Cómo vas a pagar?</h3>
+                    <p class="text-lg">Elegí tu método de pago preferido, ¡y nos encargamos del resto!</p>
+                </div>
+                <div class="text-left flex flex-row">
+                    <button x-on:click="selectPayment('debito')"
+                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                        <img src="./img/app/debit.png" class="w-28" alt="">
+                        <div class="pt-4">
+                            <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Tarjeta de Débito</h6> <!-- Texto debajo del icono -->
+                        </div>
+                    </button>
+                    <button x-on:click="selectPayment('credito')"
+                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                        <img src="./img/app/credit.png" class="w-28" alt="">
+                        <div class="pt-4">
+                            <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Tarjeta de Crédito</h6>
+                            <!-- Texto debajo del icono -->
+                        </div>
+                    </button>
+                </div>
+                <div class="text-left flex flex-row pt-4">
+                    <button x-on:click="selectPayment('debito')"
+                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                        <img src="./img/app/qr.png" class="w-28" alt="">
+                        <div class="pt-4">
+                            <h6 class="text-gray-950 mb-0 font-semibold text-2xl">QR en POS</h6> <!-- Texto debajo del icono -->
+                        </div>
+                    </button>
+                    <button x-on:click="selectPayment('credito')"
+                        class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                        <img src="./img/app/cash.png" class="w-28" alt="">
+                        <div class="pt-4">
+                            <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Efectivo en caja</h6>
+                            <!-- Texto debajo del icono -->
+                        </div>
+                    </button>
+                </div>
+
+            </div>
+                <div class="p-4 w-full" x-show="currentStep > 0">
+                    <button class="bg-gray-300 text-black text-lg px-4 py-3 mb-2 rounded-2xl w-full focus:outline-none mr-2"
+                    x-on:click="closeModalPayment()">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+
+
 
 
     </div>

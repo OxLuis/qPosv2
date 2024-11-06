@@ -40,7 +40,9 @@ function initApp() {
     cart: [],
     isShowModalReceipt: false,
     isShowModalPayment: false,
+    isShowModalConfig: false,
     isShowModalBill: false,
+    isLoading: false,
     currentStep: 0,
     documento: '',
     nombre: '',
@@ -179,36 +181,40 @@ function initApp() {
     modalBill(){
       this.isShowModalBill  = true;
       this.inputDocumento = true;
+      this.beep();
       console.log(this.isShowModalBill )
     },
-    nextStep() {
-      //Verifica si es el primer paso para verificar que el documento esté seteado
-      if(this.currentStep ==  1 && this.documento == ''){
-        alert('Debe de completar todo los campos requeridos');
-        return;
-      } else if (this.currentStep == 1 && this.documento != ''){
-        //Hace la peticion al servidor para verificar el rud
-        alert('LLamando a la funcion que llama al ajax');
-        this.getClientBillingData();
+    async nextStep() {
+      // Verifica si es el primer paso y que el documento esté seteado
+      if (this.currentStep === 1 && this.documento === '') {
+          alert('Debe completar todos los campos requeridos');
+          return;
+      } else if (this.currentStep === 1 && this.documento !== '') {
+          try {
+              // Espera a que getClientBillingData() finalice antes de continuar
+              await this.getClientBillingData();
+          } catch (error) {
+              alert('Hubo un error al verificar el documento. Inténtelo de nuevo.');
+              console.error(error);
+              //return;
+          }
+      }
+      // Verifica si es el segundo paso y el campo nombre está completo
+      if (this.ocasional && this.currentStep === 2 && this.nombre !== '') {
+          this.saveBillingData(); // Guarda los datos en localStorage
+          this.makePayment(); // Cuando llegues al último paso
+          return;
+      } else if (this.nombre === '' && this.currentStep === 2) {
+          alert('Debe completar el campo de nombre para continuar');
+          return;
       }
 
-
-
-      if(this.ocasional && this.currentStep == 2 && this.nombre != ''){
-        this.saveBillingData(); // Guarda los datos en localStorage
-        this.makePayment(); // Cuando llegues al último paso
-        return;
-      }else if(this.nombre == ''){
-        alert('Debe de completar el campo de nombre para continuar');
-      }
-
-
-
+      // Cambia al siguiente paso si está dentro del rango
       if (this.currentStep < 3) {
-        this.currentStep += 1;
+          this.currentStep += 1;
       } else {
-        this.saveBillingData(); // Guarda los datos en localStorage
-        this.makePayment(); // Cuando llegues al último paso
+          this.saveBillingData(); // Guarda los datos en localStorage
+          this.makePayment(); // Cuando llegues al último paso
       }
     },
     previousStep() {
@@ -217,7 +223,6 @@ function initApp() {
       }
     },
     async getClientBillingData(){
-      alert('Ejecutando getClienteBillingData');
       const response = await fetch("http://mail.trovari.com.py/wsTrovariApp/webresources/AppServ/buscar-cliente", {
         method: "POST",
         headers: {
@@ -228,6 +233,14 @@ function initApp() {
           "pDocumento": this.documento
         })
       });
+
+      if (!response.ok) {
+        throw new Error('Error en la respuesta del servidor');
+      }
+
+      const data = await response.json();
+      console.log(data);
+
     },
     cancelOcasionalClient(){
       this.ocasional = false;
@@ -242,7 +255,6 @@ function initApp() {
       this.isShowModalPayment = true;
       const combinedDataJSON = this.createCombinedJSON();
       console.log(combinedDataJSON);
-      alert('Realizando el pago en POS')
     },
     submit() {
       const time = new Date();
@@ -250,11 +262,17 @@ function initApp() {
       this.receiptNo = `chiperia-${Math.round(time.getTime() / 1000)}`;
       this.receiptDate = this.dateFormat(time);
     },
+    async selectPayment(){
+
+    },
     closeModalReceipt() {
       this.isShowModalReceipt = false;
     },
     closeModalBill() {
       this.isShowModalBill  = false;
+    },
+    closeModalPayment() {
+      this.isShowModalPayment = false;
     },
     dateFormat(date) {
       const formatter = new Intl.DateTimeFormat('id', { dateStyle: 'short', timeStyle: 'short' });
@@ -294,6 +312,7 @@ function initApp() {
       localStorage.setItem('userOption', selected);
       localStorage.removeItem('billingData');
       localStorage.removeItem('cart');
+      this.beep();
       this.userOption = selected; // Actualiza el estado local
       this.closeOptionsModal(); // Cierra el modal después de seleccionar
     },

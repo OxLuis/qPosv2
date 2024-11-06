@@ -7,12 +7,6 @@
     <link href="./css/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./css/swiper-bundle.min.css" />
     <link rel="stylesheet" href="./css/style.css">
-    <style>
-      body, html {
-        height: 100%;
-        margin: 0;
-      }
-    </style>
 </head>
 <body class="bg-gray-100">
 
@@ -21,7 +15,7 @@
   <!-- Slider ocupando el 85% de la pantalla -->
   <div class="flex-grow h-5/6">
     <!-- Slider Swiper.js -->
-    <div class="swiper-container h-full">
+    <div class="swiper h-full">
       <div class="swiper-wrapper">
         <!-- Slide 1 -->
         <div class="swiper-slide">
@@ -36,25 +30,27 @@
           <img src="./img/slider/3.jpg" class="w-full h-full object-cover" alt="Imagen 3">
         </div>
       </div>
+      <!-- Pagination -->
+      <div class="swiper-pagination"></div>
     </div>
   </div>
 
   <!-- Div inferior que ocupa el 15% de la pantalla -->
-
   <div class="w-full h-40 flex items-center justify-center animate-color-change">
     <a href="menu.html" class="text-white w-full h-2/3 flex flex-col items-center justify-center">
       <span class="text-4xl font-bold">Toca para pedir</span>
       <span class="text-xl">Tap to order</span>
     </a>
-  </div>º
+  </div>
 </div>
 
 <script src="./js/swiper-bundle.min.js"></script>
 <script>
-  const swiper = new Swiper('.swiper-container', {
+  const swiper = new Swiper('.swiper', {
     loop: true,
     autoplay: {
       delay: 3000,
+      disableOnInteraction: false, // Esto mantiene el autoplay aunque el usuario interactúe con el slider
     },
     pagination: {
       el: '.swiper-pagination',
@@ -69,10 +65,10 @@
   }
 
   @keyframes change-bg-color {
-    0% { background-color: #F2D8A6; } /* qpos-bg1 */
-    33% { background-color: #5B4140; } /* qpos-bg2 */
-    66% { background-color: #CE8032; } /* qpos-bg3 */
-    100% { background-color: #F2D8A6; } /* Vuelve al color inicial */
+    0% { background-color: #F2D8A6; }
+    33% { background-color: #5B4140; }
+    66% { background-color: #CE8032; }
+    100% { background-color: #F2D8A6; }
   }
 </style>
 
