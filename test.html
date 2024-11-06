@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de POST con jQuery</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Prueba de POST con jQuery</h1>
+    <script>
+        $(document).ready(function() {
+            // Configuración de la URL desde el localStorage
+            const configBancardApi = localStorage.getItem('configBancardApi') || 'http://10.10.12.48:3000';
+            const url = `${configBancardApi}/pos/venta-qr`;
+
+            // Datos de la solicitud
+            const data = {
+                factura: 123456,
+                monto: 20000,
+                montoVuelto: 0
+            };
+
+            // Realizamos la petición POST con jQuery
+            $.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    console.log("Respuesta de la API:", response);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error en la petición:", textStatus, errorThrown);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
