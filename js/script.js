@@ -41,6 +41,7 @@ function initApp() {
     isShowModalReceipt: false,
     isShowModalPayment: false,
     isShowModalConfig: false,
+    isAuth: false,
     isShowModalBill: false,
     isLoading: false,
     currentStep: 0,
@@ -48,6 +49,11 @@ function initApp() {
     nombre: '',
     email: '',
     ocasional: false,
+    configBancardApi: localStorage.getItem('configBancardApi'),
+    configCompanyApi: localStorage.getItem('configCompanyApi'),
+    configImageApi: localStorage.getItem('configImageApi'),
+    configPdvName: localStorage.getItem('configPdvName'),
+    configPin: '',
     receiptNo: null,
     receiptDate: null,
     userOption: localStorage.getItem('userOption'),
@@ -184,6 +190,23 @@ function initApp() {
       this.beep();
       console.log(this.isShowModalBill )
     },
+    saveModalConfig(){
+      localStorage.setItem('configBancardApi', this.configBancardApi);
+      localStorage.setItem('configCompanyApi', this.configCompanyApi);
+      localStorage.setItem('configImageApi', this.configImageApi);
+      localStorage.setItem('configPdvName', this.configPdvName);
+      alert('Se ha guardado la configuracion con éxito');
+      this.isAuth = false;
+      this.isShowModalConfig = false;
+      this.configPin = '';
+    },
+    closeModalConfig(){
+      this.isShowModalConfig = false;
+      this.configPin = '';
+    },
+    modalConfig(){
+      this.isShowModalConfig = true;
+    },
     async nextStep() {
       // Verifica si es el primer paso y que el documento esté seteado
       if (this.currentStep === 1 && this.documento === '') {
@@ -317,12 +340,22 @@ function initApp() {
       this.closeOptionsModal(); // Cierra el modal después de seleccionar
     },
     saveBillingData() {
-      const billingData = {
-        documento: this.documento,
-        nombre: this.nombre,
-        email: this.email,
-        ocasional: this.ocasional
-      };
+      let billingData; 
+
+      if (this.ocasional) {
+          billingData = {
+              nombre: this.nombre,
+              ocasional: 'S'
+          };
+      } else {
+          billingData = {
+              documento: this.documento,
+              nombre: this.nombre,
+              email: this.email,
+              ocasional: 'N'
+          };
+      }
+  
       localStorage.setItem('billingData', JSON.stringify(billingData));
     },
     saveCart() {
@@ -333,6 +366,11 @@ function initApp() {
       if (cart) {
         this.cart = cart;
       }
+    },
+    getImageUrl(imagePath) {
+      // Obtiene la URL base desde el localStorage o usa un valor por defecto si no está definida
+      const baseUrl = localStorage.getItem('configImageApi') || 'http://mail.trovari.com.py/imagenes/';
+      return baseUrl + imagePath;
     },
     createCombinedJSON() {
       // Recuperar datos del localStorage
@@ -351,6 +389,14 @@ function initApp() {
       const combinedJSON = JSON.stringify(combinedData);
 
       return combinedJSON;
+    },
+    configLogin(){
+      if(this.configPin == '258225'){
+        this.isAuth = true;
+      }else{
+        alert('Pin inválido');
+        return;
+      }
     },
     printAndProceed() {
       const receiptContent = document.getElementById('receipt-content');
@@ -378,7 +424,7 @@ function initApp() {
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(() => {
       window.location.href = 'index.html'; // Redirigir a index.html
-    }, 60000); // 5 minutos
+    }, 600000); // 5 minutos
   }
 
   // Escuchar eventos para resetear el temporizador
@@ -398,3 +444,20 @@ function deleteLocalDB(db) {
     alert('Base de datos eliminada con éxito.');
   };
 }
+
+function setDefaultConfig() {
+  const defaults = {
+      configBancardApi: 'http://10.10.12.64',
+      configCompanyApi: 'http://mail.trovari.com.py',
+      configImageApi: 'http://mail.trovari.com.py/imagenes/',
+      configPdvName: 'PDV1'
+  };
+
+  for (const key in defaults) {
+      if (localStorage.getItem(key) === null) {
+          localStorage.setItem(key, defaults[key]);
+      }
+  }
+}
+
+setDefaultConfig();
