@@ -175,7 +175,7 @@
                                 <div>TOTAL </div>
                                 <div class="text-right w-full" x-text="priceFormat(getTotalPrice())"></div>
                             </div>
-                            <button class="text-white rounded-2xl text-lg w-full py-3 focus:outline-none" x-bind:class="{
+                            <button class="text-white rounded-2xl text-lg w-full py-3 font-bold focus:outline-none" x-bind:class="{
                         'qpos-bg2 hover:qpos-bg1': submitable(),
                         'bg-blue-gray-200': !submitable()
                     }" :disabled="!submitable()" x-on:click="modalBill()" x-show="getTotalPrice() > 0">
@@ -299,47 +299,86 @@
             </div>
             <div x-show="isShowModalPayment" class="w-96 rounded-3xl bg-white shadow-xl overflow-hidden z-10" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 transform scale-90" x-transition:enter-end="opacity-100 transform scale-100"
             x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-90" style="width:650px">
-                <div class="w-96 rounded-3xl p-8 bg-white w-full">
-                    <div class="pb-4">
-                        <h3 class="text-3xl font-semibold mb-1">¿Cómo vas a pagar?</h3>
-                        <p class="text-lg">Elegí tu método de pago preferido, ¡y nos encargamos del resto!</p>
+                <div x-show="!isLoading && !isAux && !isSuccess">
+                    <div class="w-96 rounded-3xl p-8 bg-white w-full">
+                        <div class="pb-4">
+                            <h3 class="text-3xl font-semibold mb-1">¿Cómo vas a pagar?</h3>
+                            <p class="text-lg">Elegí tu método de pago preferido, ¡y nos encargamos del resto!</p>
+                        </div>
+                        <div class="text-left flex flex-row">
+                            <button x-on:click="selectPayment('debito')" class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                                <img src="./img/app/debit.png" class="w-28" alt="">
+                                <div class="pt-4">
+                                    <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Tarjeta de Débito</h6>
+                                    <!-- Texto debajo del icono -->
+                                </div>
+                            </button>
+                            <button x-on:click="selectPayment('credito')" class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                                <img src="./img/app/credit.png" class="w-28" alt="">
+                                <div class="pt-4">
+                                    <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Tarjeta de Crédito</h6>
+                                    <!-- Texto debajo del icono -->
+                                </div>
+                            </button>
+                        </div>
+                        <div class="text-left flex flex-row pt-4">
+                            <button x-on:click="selectPayment('qr')" class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                                <img src="./img/app/qr.png" class="w-28" alt="">
+                                <div class="pt-4">
+                                    <h6 class="text-gray-950 mb-0 font-semibold text-2xl">QR en POS</h6>
+                                    <!-- Texto debajo del icono -->
+                                </div>
+                            </button>
+                            <button x-on:click="selectPayment('efectivo')" class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
+                                <img src="./img/app/cash.png" class="w-28" alt="">
+                                <div class="pt-4">
+                                    <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Efectivo en caja</h6>
+                                    <!-- Texto debajo del icono -->
+                                </div>
+                            </button>
+                        </div>
+    
                     </div>
-                    <div class="text-left flex flex-row">
-                        <button x-on:click="selectPayment('debito')" class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
-                            <img src="./img/app/debit.png" class="w-28" alt="">
-                            <div class="pt-4">
-                                <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Tarjeta de Débito</h6>
-                                <!-- Texto debajo del icono -->
-                            </div>
-                        </button>
-                        <button x-on:click="selectPayment('credito')" class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
-                            <img src="./img/app/credit.png" class="w-28" alt="">
-                            <div class="pt-4">
-                                <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Tarjeta de Crédito</h6>
-                                <!-- Texto debajo del icono -->
-                            </div>
-                        </button>
+                    <div class="p-4 w-full" x-show="currentStep > 0">
+                        <button class="bg-gray-300 text-black text-lg px-4 py-3 mb-2 rounded-2xl w-full focus:outline-none mr-2" x-on:click="closeModalPayment()">CANCELAR</button>
                     </div>
-                    <div class="text-left flex flex-row pt-4">
-                        <button x-on:click="pay('qr')" class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
-                            <img src="./img/app/qr.png" class="w-28" alt="">
-                            <div class="pt-4">
-                                <h6 class="text-gray-950 mb-0 font-semibold text-2xl">QR en POS</h6>
-                                <!-- Texto debajo del icono -->
-                            </div>
-                        </button>
-                        <button x-on:click="selectPayment('efectivo')" class="flex flex-col items-center w-full mx-3 rounded-xl bg-white shadow-xl focus:qpos-bg1 hover:qpos-bg1 px-4 py-4">
-                            <img src="./img/app/cash.png" class="w-28" alt="">
-                            <div class="pt-4">
-                                <h6 class="text-gray-950 mb-0 font-semibold text-2xl">Efectivo en caja</h6>
-                                <!-- Texto debajo del icono -->
-                            </div>
-                        </button>
-                    </div>
-
                 </div>
-                <div class="p-4 w-full" x-show="currentStep > 0">
-                    <button class="bg-gray-300 text-black text-lg px-4 py-3 mb-2 rounded-2xl w-full focus:outline-none mr-2" x-on:click="closeModalPayment()">CANCELAR</button>
+                <div x-show="isAux">
+                    <div class="w-96 rounded-3xl p-8 bg-white w-full">
+                        <div id="lottieContainer-POS"></div>
+                        <div class="pb-4 text-center">
+                            <h3 class="text-3xl font-semibold mb-1">Continuar en el POS</h3>
+                            <p class="text-lg">Por favor continuar los pasos en el POS para culminar el pago.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="isSuccess">
+                    <div class="w-96 rounded-3xl p-8 bg-white w-full">
+                        <div id="lottieContainer-OK"></div>
+                        <div class="pb-4 text-center">
+                            <h3 class="text-3xl font-semibold mb-1" id="title">¡LISTO!</h3>
+                            <p class="text-lg px-4" id="message"></p>
+                        </div>
+                        <div class=" py-3">
+                            <button x-on:click="newOrder()" class="text-center w-full rounded-xl qpos-bg1 shadow-xl focus:bg-white hover:qpos-bg1 px-4 py-4">
+                                <h1 class="text-2xl font-semibold text-center">Realizar otro pedido</h1>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="isLoading && tipoPago == 'qr' ">
+                    <div class="w-96 rounded-3xl p-8 bg-white w-full">
+                        <div class="text-left">
+                            <button x-on:click="pay('qr debito')" class="text-left w-full mb-3 rounded-xl bg-white  shadow-xl hover:qpos-bg3 px-4 py-4 ">
+                                <h1 class="text-2xl font-semibold">QR tipo débito</h1>
+                            </button>
+                            <button x-on:click="pay('qr credito')" class="w-full rounded-xl qpos-bg1 shadow-xl focus:bg-white hover:qpos-bg1 px-4 py-4 flex flex-row items-center">
+                                <h1 class="text-2xl font-semibold">QR tipo crédito</h1>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -351,8 +390,6 @@
             </div>
             <div x-show="isShowModalConfig" class="w-96 rounded-3xl bg-white shadow-xl overflow-hidden z-10" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 transform scale-90" x-transition:enter-end="opacity-100 transform scale-100"
             x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-90" style="width:650px">
-                
-			
 				<div class="w-96 rounded-3xl p-8 bg-white w-full">
                     <div class="pb-4">
                         <h3 class="text-3xl font-semibold mb-1">Configuraciones</h3>
@@ -394,6 +431,13 @@
                             <input type="text" class="bg-white rounded-xl shadow text-lg full w-full h-16 py-2 pl-4 transition-shadow focus:shadow-2xl focus:outline-none" placeholder="Ingrese aquí la dirección IP del servicio de imagenes" x-model="configImageApi" />
                         </div>
                         <div class="pb-4">
+                            <div class="pb-1">
+                                <h3 class="text-lg font-semibold mb-1">Dirección IP - Proxy POS</h3>
+                                <p class="text-sm">Ingresá la dirección IP del Proxy para la conexiòn con el POS.</p>
+                            </div>
+                            <input type="text" class="bg-white rounded-xl shadow text-lg full w-full h-16 py-2 pl-4 transition-shadow focus:shadow-2xl focus:outline-none" placeholder="Ingrese aquí la dirección IP del servicio de imagenes" x-model="configProxyPos" />
+                        </div>
+                        <div class="pb-4">
                             <div class="pb-2">
                                 <h3 class="text-lg font-semibold mb-1">Nombre del PDV</h3>
                                 <p class="text-sm">Ingresa el nombre del PDV para identificar el equipo</p>
@@ -410,58 +454,13 @@
         </div>
 
 
-      <!--   <div x-show="isShowModalConfig" class="fixed w-full h-screen left-0 top-0 z-10 flex flex-wrap justify-center content-center p-24">
-            <div x-show="isShowModalConfig" class="fixed glass w-full h-screen left-0 top-0 z-0" x-on:click="closeModalConfig()" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-100"
-            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-            </div>
-            <div x-show="isShowModalConfig" class="w-96 rounded-3xl bg-white shadow-xl overflow-hidden z-10" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 transform scale-90" x-transition:enter-end="opacity-100 transform scale-100"
-            x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-90" style="width:650px">
-                <div class="w-96 rounded-3xl p-8 bg-white w-full">
-                    <div class="pb-4">
-                        <h3 class="text-3xl font-semibold mb-1">Configuraciones</h3>
-                        <p class="text-lg">Aquí te ayudamos a configurar tu PDV.</p>
-                    </div>
-                    <div class="text-left flex flex-col">
-                        <div class="pb-4">
-                            <div class="pb-2">
-                                <h3 class="text-lg font-semibold mb-1">Dirección IP - POS Bancard</h3>
-                                <p class="text-lg">Ingresá la dirección IP del POS de Bancard asignado a este PDV.</p>
-                            </div>
-                            <input type="text" class="bg-white rounded-xl shadow text-lg full w-full h-16 py-2 pl-4 transition-shadow focus:shadow-2xl focus:outline-none" placeholder="Ingrese aquí la dirección IP" x-model="configBancardApi" />
-                        </div>
-                        <div class="pb-4">
-                            <div class="pb-2">
-                                <h3 class="text-lg font-semibold mb-1">Dirección IP - API de Productos</h3>
-                                <p class="text-lg">Ingresá la dirección IP del API para sincronización de articulos.</p>
-                            </div>
-                            <input type="text" class="bg-white rounded-xl shadow text-lg full w-full h-16 py-2 pl-4 transition-shadow focus:shadow-2xl focus:outline-none" placeholder="Ingrese aquí la dirección IP de la empresa" x-model="configCompanyApi" />
-                        </div>
-                        <div class="pb-4">
-                            <div class="pb-2">
-                                <h3 class="text-lg font-semibold mb-1">Nombre del PDV</h3>
-                                <p class="text-lg">Ingresa el nombre del PDV para identificar el equipo</p>
-                            </div>
-                            <input type="text" class="bg-white rounded-xl shadow text-lg full w-full h-16 py-2 pl-4 transition-shadow focus:shadow-2xl focus:outline-none" placeholder="Ingrese aquí el nombre" x-model="configPdvName" />
-                        </div>
-                    </div>
-                </div>
-                <div class="p-4 w-full" x-show="currentStep > 0">
-                    <button class="qpos-bg2 text-white text-lg px-4 py-3 rounded-2xl w-full focus:outline-none" x-on:click="saveModalConfig()">GUARDAR CAMBIOS</button>
-                    <button class="bg-gray-300 text-black text-lg px-4 py-3 mb-2 rounded-2xl w-full focus:outline-none mr-2" x-on:click="closeModalConfig()">CANCELAR</button>
-                </div>
-            </div>
-        </div> -->
-
-
-
-
     </div>
 
 
 
 
-    <!-- modal receipt -->
-    <!-- <div x-show="isShowModalReceipt"
+    
+     <div x-show="isShowModalReceipt"
 			class="fixed w-full h-screen left-0 top-0 z-10 flex flex-wrap justify-center content-center p-24">
 			<div x-show="isShowModalReceipt" class="fixed glass w-full h-screen left-0 top-0 z-0"
 				x-on:click="closeModalReceipt()" x-transition:enter="transition ease-out duration-100"
@@ -477,9 +476,8 @@
 				x-transition:leave-end="opacity-0 transform scale-90">
 				<div id="receipt-content" class="text-left w-full text-sm p-6 overflow-auto">
 					<div class="text-center">
-						<img src="./img/app/logo.png" alt="Tailwind POS" class="mb-3  inline-block">
-						<h2 class="text-xl font-semibold">Qoarto Pos</h2>
-						<p>Luis Talavera</p>
+						<img src="./img/app/logo.png" alt="La casa de la chipa" class="mb-3  inline-block">
+						<h2 class="text-xl font-semibold">Resumen de Pedido</h2>
 					</div>
 					<div class="flex mt-4 text-xs">
 						<div class="flex-grow">No: <span x-text="receiptNo"></span></div>
@@ -492,7 +490,7 @@
 								<tr>
 									<th class="py-1 w-1/12 text-center">#</th>
 									<th class="py-1 text-left">Item</th>
-									<th class="py-1 w-2/12 text-center">Qty</th>
+									<th class="py-1 w-2/12 text-center">Cantidad</th>
 									<th class="py-1 w-3/12 text-right">Subtotal</th>
 								</tr>
 							</thead>
@@ -503,10 +501,10 @@
 										<td class="py-2 text-left">
 											<span x-text="item.name"></span>
 											<br />
-											<small x-text="priceFormat(item.price)"></small>
+											<small x-text="priceFormat(item.precio)"></small>
 										</td>
 										<td class="py-2 text-center" x-text="item.qty"></td>
-										<td class="py-2 text-right" x-text="priceFormat(item.qty * item.price)"></td>
+										<td class="py-2 text-right" x-text="priceFormat(item.qty * item.precio)"></td>
 									</tr>
 								</template>
 							</tbody>
@@ -522,12 +520,12 @@
 				</div>
 				<div class="p-4 w-full">
 					<button class="qpos-bg2 text-white text-lg px-4 py-3 rounded-2xl w-full focus:outline-none"
-						x-on:click="printAndProceed()">PAGAR</button>
+						x-on:click="makePayment()">PAGAR</button>
 					<button class="bg-gray-500 text-white text-lg px-4 py-3 my-2 rounded-2xl w-full focus:outline-none"
-						x-on:click="printAndProceed()">CANCELAR</button>
+						x-on:click="modalCloseReceipt()">MODIFICAR MI PEDIDO</button>
 				</div>
 			</div>
-		</div> -->
+		</div>
 
 
 

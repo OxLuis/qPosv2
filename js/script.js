@@ -46,6 +46,9 @@ function initApp() {
         isAuth: false,
         isShowModalBill: false,
         isLoading: false,
+        isAux: false,
+		isSuccess: false,
+		tipoPago: '',
         currentStep: 0,
         documento: "",
         nombre: "",
@@ -58,12 +61,14 @@ function initApp() {
         configPdvName: localStorage.getItem("configPdvName"),
         configPin: "",
         receiptNo: null,
+        lottieInstance: null,
         receiptDate: null,
         userOption: localStorage.getItem("userOption"),
         async initDatabase() {
             this.db = await loadDatabase();
             this.loadProducts();
             resetInactivityTimer();
+            this.initLottieAnimation();
         },
         async loadProducts() {
             this.products = await this.db.getProducts();
@@ -107,20 +112,15 @@ function initApp() {
                     }),
                 }
             );
-
-            // Verificamos si la respuesta fue exitosa
             if (!response.ok) {
                 throw new Error("Error en la respuesta del servidor");
             }
-
             const data = await response.json();
 
             for (let product of data) {
                 await this.db.addProduct(product);
             }
-
-              // Redirigir a index.html
-            window.location.href = "index.html"; 
+            window.location.href = "index.html";
         },
         startBlank() {
             this.setFirstTime(false);
@@ -148,9 +148,7 @@ function initApp() {
         filteredCategorias() {
             // Crea un array único de las categorías en base a 'des_sub_tipo'
             const categoriasUnicas = [...new Set(this.products.map(p => p.des_sub_tipo))];
-            
-            // Opcional: Si quieres filtrar categorías según algún criterio adicional, puedes agregarlo aquí.
-            return categoriasUnicas.filter(categoria => categoria); // Filtra categorías no nulas
+            return categoriasUnicas.filter(categoria => categoria);
         },
         addToCart(product) {
             const index = this.findCartIndex(product);
@@ -204,6 +202,32 @@ function initApp() {
         submitable() {
             return this.cart.length > 0;
         },
+        async initLottieAnimation() {
+			const posLottie = document.getElementById("lottieContainer-POS");
+			this.lottieInstance = lottie.loadAnimation({
+				container: posLottie,
+				renderer: 'svg',
+				loop: true,
+				autoplay: true,
+				path: 'img/app/pos.json',
+				rendererSettings: {
+					preserveAspectRatio: 'xMidYMid meet',
+					progressiveLoad: true,
+				}
+			});
+			const successLottie = document.getElementById("lottieContainer-OK");
+			this.lottieInstance = lottie.loadAnimation({
+				container: successLottie,
+				renderer: 'svg',
+				loop: true,
+				autoplay: true,
+				path: 'img/app/success.json',
+				rendererSettings: {
+					preserveAspectRatio: 'xMidYMid meet',
+					progressiveLoad: true,
+				}
+			});
+		},
         modalBill() {
             this.isShowModalBill = true;
             this.inputDocumento = true;
@@ -252,7 +276,8 @@ function initApp() {
                 this.nombre !== ""
             ) {
                 this.saveBillingData(); // Guarda los datos en localStorage
-                this.makePayment(); // Cuando llegues al último paso
+                //this.makePayment(); // Cuando llegues al último paso
+				this.submit();
                 return;
             } else if (this.nombre === "" && this.currentStep === 2) {
                 alert("Debe completar el campo de nombre para continuar");
@@ -264,7 +289,8 @@ function initApp() {
                 this.currentStep += 1;
             } else {
                 this.saveBillingData(); // Guarda los datos en localStorage
-                this.makePayment(); // Cuando llegues al último paso
+                //this.makePayment(); // Cuando llegues al último paso
+				this.submit();
             }
         },
         previousStep() {
@@ -273,8 +299,7 @@ function initApp() {
             }
         },
         async getClientBillingData() {
-            const response = await fetch(
-                "http://mail.trovari.com.py/wsTrovariApp/webresources/AppServ/buscar-cliente",
+            const response = await fetch(localStorage.getItem('configCompanyApi')+"/wsTrovariApp/webresources/AppServ/buscar-cliente",
                 {
                     method: "POST",
                     headers: {
@@ -303,6 +328,7 @@ function initApp() {
             this.ocasional = true;
         },
         makePayment() {
+			this.isShowModalReceipt = false;
             this.isShowModalBill = false;
             this.isShowModalPayment = true;
             const combinedDataJSON = this.createCombinedJSON();
@@ -316,195 +342,77 @@ function initApp() {
         selectPayment(tipo) {
 			const time = new Date();
 			let factura = Math.floor(time.getTime() / 10);  // Divide por 10 para reducir el número
-			let monto = 20000;
-            /* if (tipo == "credito") {
-                try {
-                    // Primer POST a /pos/venta-ux
-                    const ventaUxResponse = await fetch(
-                        localStorage.getItem('configBancardApi')+"/pos/venta/credito",
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                facturaNro: factura,
-                                cuotas: 0,
-                                plan: 0,
-                            }),
-                        }
-                    );
-
-                    // Verificamos si la respuesta es exitosa
-                    if (!ventaUxResponse.ok) {
-                        throw new Error("Error en la petición a /pos/credito");
-                    }
-
-                    // Convertimos la respuesta a JSON
-                    const ventaUxData = await ventaUxResponse.json();
-
-                    // Extraemos bin y nsu del resultado
-                    const { bin, nsu } = ventaUxData;
-
-                    // Segundo POST a /pos/descuento con los datos obtenidos
-                    const descuentoResponse = await fetch(
-                        localStorage.getItem('configBancardApi')+"/pos/descuento",
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                bin: bin,
-                                nsu: nsu,
-                                monto: monto,
-                                vuelto: 0,
-                            }),
-                        }
-                    );
-
-                    // Verificamos si la respuesta del segundo POST es exitosa
-                    if (!descuentoResponse.ok) {
-                        throw new Error(
-                            "Error en la petición a /pos/descuento"
-                        );
-                    }
-
-                    // Convertimos la respuesta a JSON (si necesitas trabajar con los datos devueltos)
-                    const descuentoData = await descuentoResponse.json();
-                    console.log("Respuesta de descuento:", descuentoData);
-                } catch (error) {
-                    console.error("Error en la operación:", error);
-                }
-            }
-
-
-			if (tipo == "debito") {
-                try {
-                    // Primer POST a /pos/venta-ux
-                    const ventaUxResponse = await fetch(
-                        localStorage.getItem('configBancardApi')+"/pos/venta/debito",
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                facturaNro: factura,
-                            }),
-                        }
-                    );
-
-                    // Verificamos si la respuesta es exitosa
-                    if (!ventaUxResponse.ok) {
-                        throw new Error("Error en la petición a /pos/credito");
-                    }
-
-                    // Convertimos la respuesta a JSON
-                    const ventaUxData = await ventaUxResponse.json();
-
-                    // Extraemos bin y nsu del resultado
-                    const { bin, nsu } = ventaUxData;
-
-                    // Segundo POST a /pos/descuento con los datos obtenidos
-                    const descuentoResponse = await fetch(
-                        localStorage.getItem('configBancardApi')+"/pos/descuento",
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                bin: bin,
-                                nsu: nsu,
-                                monto: monto,
-                                vuelto: 0,
-                            }),
-                        }
-                    );
-
-                    // Verificamos si la respuesta del segundo POST es exitosa
-                    if (!descuentoResponse.ok) {
-                        throw new Error(
-                            "Error en la petición a /pos/descuento"
-                        );
-                    }
-
-                    // Convertimos la respuesta a JSON (si necesitas trabajar con los datos devueltos)
-                    const descuentoData = await descuentoResponse.json();
-                    console.log("Respuesta de descuento:", descuentoData);
-                } catch (error) {
-                    console.error("Error en la operación:", error);
-                }
-            }
-
- */
-			if (tipo == "qr") {
-                try {
-					
-					  
-                } catch (error) {
-                    console.error("Error en la operación:", error);
-                }
-            }
-
-			/* if (tipo == "efectivo") {
-                try {
-                    
-                    const descuentoResponse = await fetch(
-                        localStorage.getItem('configBancardApi')+"/pos/venta-qr",
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                factura: factura,
-                                monto: monto,
-                                montoVuelto: 0,
-                            }),
-                        }
-                    );
-
-                    // Verificamos si la respuesta del segundo POST es exitosa
-                    if (!descuentoResponse.ok) {
-                        throw new Error(
-                            "Error en la petición a /pos/descuento"
-                        );
-                    }
-
-                    // Convertimos la respuesta a JSON (si necesitas trabajar con los datos devueltos)
-                    const descuentoData = await descuentoResponse.json();
-                    console.log("Respuesta de descuento:", descuentoData);
-                } catch (error) {
-                    console.error("Error en la operación:", error);
-                }
-            } */
+			if(tipo == 'qr'){
+				this.isLoading = true;
+				this.tipoPago = tipo;
+			}else{
+				this.isLoading = true;
+				this.tipoPago = tipo;
+				this.pay(tipo);
+			}
 
         },
+		modalCloseReceipt(){
+			this.isShowModalReceipt = false;
+			this.isShowModalBill = false;
+		},
 		async pay(tipo) {
-            try {
-                const response = await fetch("http://10.10.12.9:4000/qr", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        facturaNro: 123456988,
-                        monto: 10000,
-                        vuelto: 0,
-                        pos: 'http://10.10.12.48:3000'
-                    }),
-                });
-             
-                console.log(response);
-            
-                const data = await response.json();
-                console.log("Respuesta del servidor:", data);
-            } catch (error) {
-                console.error("Error al realizar la petición:", error);
-            }
-            
+			this.isAux = true;
+			this.isLoading = false;
+			monto = this.getTotalPrice();
+			console.log('Total a pagar: '+monto);
+			console.log('Pagando con: '+tipo)
+            if(tipo == 'qr credito' || tipo == 'qr debito'){
+				try {
+					const response = await fetch(localStorage.getItem('configProxyPos')+"/qr", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							facturaNro: 123456988,
+							monto: 10000,
+							vuelto: 0,
+							pos: localStorage.getItem('configBancardApi')
+						}),
+					});
+					console.log(response);
+					const data = await response.json();
+					console.log("Respuesta del servidor:", data);
+
+					localStorage.setItem('qrPaymentResponse', JSON.stringify(data));
+					this.submitOrder(tipo)
+
+				} catch (error) {
+					console.error("Error al realizar la petición:", error);
+				}
+			}
+
+			if(tipo == 'debito' || tipo == 'credito' ){
+				try {
+					const response = await fetch(localStorage.getItem('configProxyPos')+"/"+tipo, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							facturaNro: 123456988,
+							monto: 1000,
+							vuelto: 0,
+							pos: localStorage.getItem('configBancardApi')
+						}),
+					});
+					console.log(response);
+					const data = await response.json();
+					console.log("Respuesta del servidor:", data);
+				} catch (error) {
+					console.error("Error al realizar la petición:", error);
+				}
+			}
+
+			if(tipo == 'efectivo'){
+				this.submitOrder(tipo);
+			}
         },
         closeModalReceipt() {
             this.isShowModalReceipt = false;
@@ -514,6 +422,8 @@ function initApp() {
         },
         closeModalPayment() {
             this.isShowModalPayment = false;
+			this.isAux = false;
+			this.isLoading = false;
         },
         dateFormat(date) {
             const formatter = new Intl.DateTimeFormat("id", {
@@ -560,6 +470,23 @@ function initApp() {
             this.userOption = selected; // Actualiza el estado local
             this.closeOptionsModal(); // Cierra el modal después de seleccionar
         },
+		submitOrder(tipo){
+			this.isSuccess = true;
+			this.isAux = false;
+			if(tipo == 'efectivo'){
+				const message = document.getElementById("message");
+				const title = document.getElementById("title");
+				message.innerText = "Por favor pase por caja para pagar y confirmar su pedido. ¡Muchas gracias por la preferencia!";
+				title.innerText = "Pedido realizado, abonar en caja.";
+			}else{
+				const message = document.getElementById("message");
+				message.innerText = "¡Gracias por la preferencia! En breve le llamaremos para disfrutar su pedido.";
+			}
+			
+		},
+		newOrder(){
+			location.reload(true);
+		},
         saveBillingData() {
             let billingData;
 
@@ -636,8 +563,6 @@ function initApp() {
 
             printArea.innerHTML = "";
             document.title = titleBefore;
-
-            // TODO save sale data to database
 
             this.clear();
         },
