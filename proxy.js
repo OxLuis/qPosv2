@@ -46,8 +46,10 @@ app.post("/debito", async (req, res) => {
 
 	try {
 		// Configura la solicitud que se enviará a la API externa
-		const ventaDebito = await axios.post(`${pos}/pos/venta/debito`, {
-			facturaNro
+		const ventaDebito = await axios.post(`${pos}/pos/venta-ux`, {
+		/* const ventaDebito = await axios.post(`${pos}/pos/venta/debito`, { */
+			facturaNro,
+			monto
 		}, {
 			headers: { "Content-Type": "application/json" }
 		});
@@ -100,7 +102,8 @@ app.post("/debito", async (req, res) => {
 		console.log("Respuesta de descuento:", descuentoData);
 
 		// Enviar la respuesta al cliente
-		res.json(descuentoData.data);
+		res.json(descuentoData);
+		
 
 	} catch (error) {
 		// Si ocurre un error, verificamos el tipo y retornamos el código adecuado
@@ -131,20 +134,23 @@ app.post("/credito", async (req, res) => {
 
 	try {
 		// Configura la solicitud que se enviará a la API externa
-		const ventaDebito = await axios.post(`${pos}/pos/venta/credito`, {
+		/* const ventaPos = await axios.post(`${pos}/pos/venta/credito`, { */
+		const ventaPos = await axios.post(`${pos}/pos/venta-ux`, {
 			facturaNro,
 			"cuotas": 0,
-			"plan": 0,
+			"plan": 0
 		}, {
 			headers: { "Content-Type": "application/json" }
 		});
-
+		console.log(ventaPos);
 		// Verificamos si la respuesta es exitosa
-		if (!ventaDebito.ok) {
-			throw new Error("Error en la petición a /pos/debito");
+		if (!ventaPos.ok) {
+			throw new Error("Error en la petición a /pos/credito");
 		}
 
-		const venta = await ventaDebito.json();
+		
+
+		const venta = await ventaPos.json();
 
 		console.log(venta);
 
@@ -175,7 +181,7 @@ app.post("/credito", async (req, res) => {
 
 		const descuentoData = await descuentoResponse.json();
 		console.log("Respuesta de descuento:", descuentoData);
-		res.json(descuentoData.data);
+		res.json(descuentoData);
 	} catch (error) {
 		console.error("Error en la solicitud al POS:", error.message);
 		res.status(500).json({ error: "Error al realizar la solicitud al POS" });

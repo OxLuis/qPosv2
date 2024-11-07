@@ -29,8 +29,13 @@
                 <ul class="flex flex-col space-y-2 mt-12">
                     <li>
                         <div x-show="filteredCategorias().length" class="grid grid-cols-1 gap-4 pb-3">
+                            <div class="select-none cursor-pointer transition-shadow overflow-hidden rounded-2xl bg-white shadow hover:shadow-lg"
+                                 @click="selectedCategory = null">
+                                <p class="text-center font-semibold text-lg">Todo</p>
+                            </div>
                             <template x-for="categoria in filteredCategorias()" :key="categoria">
-                                <div class="select-none cursor-pointer transition-shadow overflow-hidden rounded-2xl bg-white shadow hover:shadow-lg">
+                                <div class="select-none cursor-pointer transition-shadow overflow-hidden rounded-2xl bg-white shadow hover:shadow-lg"
+                                     @click="selectedCategory = categoria">
                                     <p class="text-center font-semibold text-lg" x-text="categoria"></p>
                                 </div>
                             </template>

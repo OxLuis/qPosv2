@@ -53,7 +53,9 @@ function initApp() {
         documento: "",
         nombre: "",
         email: "",
+        isExenta: false,
         ocasional: false,
+        selectedCategory: null,
         configBancardApi: localStorage.getItem("configBancardApi"),
         configCompanyApi: localStorage.getItem("configCompanyApi"),
         configImageApi: localStorage.getItem("configImageApi"),
@@ -142,11 +144,11 @@ function initApp() {
             return this.products.filter(
                 (p) =>
                     (!rg || p.descripcion.match(rg)) &&
-                    (p.existencia > 0 || p.des_marca === "CAFE FICHA")
+                    (p.existencia > 0 || p.des_marca === "CAFE FICHA") &&
+                    (!this.selectedCategory || p.des_sub_tipo === this.selectedCategory)
             );
         },
         filteredCategorias() {
-            // Crea un array único de las categorías en base a 'des_sub_tipo'
             const categoriasUnicas = [...new Set(this.products.map(p => p.des_sub_tipo))];
             return categoriasUnicas.filter(categoria => categoria);
         },
@@ -189,10 +191,23 @@ function initApp() {
             return this.cart.reduce((count, item) => count + item.qty, 0);
         },
         getTotalPrice() {
-            return this.cart.reduce(
-                (total, item) => total + item.qty * item.precio, // Cambié 'price' a 'precio'
+            let total = this.cart.reduce(
+                (total, item) => total + item.qty * item.precio,
                 0
             );
+            if(this.isShowModalReceipt){
+                const isExenta = JSON.parse(localStorage.getItem('isExenta'));
+
+                // Si es exenta, aplica el descuento del IVA para mostrar el monto sin IVA
+                let finalTotal = isExenta ? total / 1.10 : total;
+                
+                // Redondea el total a 0 decimales
+                return Math.round(finalTotal);
+            }else{
+                return total;
+            }
+            // Verifica si el valor de 'isExenta' está en localStorage
+            
         },
         canContinue() {
             if (this.nombre) {
@@ -201,6 +216,28 @@ function initApp() {
         },
         submitable() {
             return this.cart.length > 0;
+        },
+        getExenta() {
+            const billingDataApi = localStorage.getItem('billingDataApi');
+            
+            if (billingDataApi) {
+                let parsedData;
+                try {
+                    parsedData = JSON.parse(billingDataApi); // Esto lo convierte a objeto si es cadena
+                } catch (error) {
+                    console.error("Error al parsear 'billingDataApi':", error);
+                    return;
+                }
+        
+                // Asegúrate de que parsedData es un array y asigna el primer elemento
+                const data = Array.isArray(parsedData) ? parsedData[0] : parsedData;
+                
+                // Verifica si el campo 'tar_exo_fiscal' existe en los datos
+                this.isExenta = !!data.tar_exo_fiscal; // Asigna true si existe, false si no
+            } else {
+                // Si no existe 'billingDataApi' en localStorage, asigna false
+                this.isExenta = false; 
+            }
         },
         async initLottieAnimation() {
 			const posLottie = document.getElementById("lottieContainer-POS");
@@ -299,25 +336,33 @@ function initApp() {
             }
         },
         async getClientBillingData() {
-            const response = await fetch(localStorage.getItem('configCompanyApi')+"/wsTrovariApp/webresources/AppServ/buscar-cliente",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        pCodEmpresa: "1",
-                        pDocumento: this.documento,
-                    }),
-                }
-            );
-
+            const response = await fetch(localStorage.getItem('configCompanyApi') + "/wsTrovariApp/webresources/AppServ/buscar-cliente", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    pCodEmpresa: "1",
+                    pDocumento: this.documento,
+                }),
+            });
+        
             if (!response.ok) {
                 throw new Error("Error en la respuesta del servidor");
             }
-
+        
             const data = await response.json();
-            console.log(data);
+        
+            // Verificar si 'tar_exo_fiscal' existe en la respuesta
+            const isExenta = data && data[0] && data[0].tar_exo_fiscal ? true : false;
+        
+            // Guardar los datos en localStorage
+            localStorage.setItem('billingDataApi', JSON.stringify(data));
+        
+            // Guardar el valor de 'isExenta' en localStorage
+            localStorage.setItem('isExenta', isExenta);
+        
+            console.log(data); // Para verificar el contenido de 'data'
         },
         cancelOcasionalClient() {
             this.ocasional = false;
@@ -340,8 +385,7 @@ function initApp() {
             this.receiptDate = this.dateFormat(time);
         },
         selectPayment(tipo) {
-			const time = new Date();
-			let factura = Math.floor(time.getTime() / 10);  // Divide por 10 para reducir el número
+			
 			if(tipo == 'qr'){
 				this.isLoading = true;
 				this.tipoPago = tipo;
@@ -360,6 +404,9 @@ function initApp() {
 			this.isAux = true;
 			this.isLoading = false;
 			monto = this.getTotalPrice();
+            const time = new Date();
+			const factura = Math.floor(time.getTime() / 10);  // Divide por 10 para reducir el número
+
 			console.log('Total a pagar: '+monto);
 			console.log('Pagando con: '+tipo)
             if(tipo == 'qr credito' || tipo == 'qr debito'){
@@ -370,7 +417,7 @@ function initApp() {
 							"Content-Type": "application/json",
 						},
 						body: JSON.stringify({
-							facturaNro: 123456988,
+							facturaNro: factura,
 							monto: 10000,
 							vuelto: 0,
 							pos: localStorage.getItem('configBancardApi')
@@ -396,7 +443,7 @@ function initApp() {
 							"Content-Type": "application/json",
 						},
 						body: JSON.stringify({
-							facturaNro: 123456988,
+							facturaNro: factura,
 							monto: 1000,
 							vuelto: 0,
 							pos: localStorage.getItem('configBancardApi')
@@ -404,7 +451,9 @@ function initApp() {
 					});
 					console.log(response);
 					const data = await response.json();
+                    localStorage.setItem('qrPaymentResponse', JSON.stringify(data));
 					console.log("Respuesta del servidor:", data);
+                    this.submitOrder(tipo)
 				} catch (error) {
 					console.error("Error al realizar la petición:", error);
 				}
@@ -473,6 +522,8 @@ function initApp() {
 		submitOrder(tipo){
 			this.isSuccess = true;
 			this.isAux = false;
+            localStorage.removeItem('billingDataApi');
+            localStorage.removeItem('qrPaymentResponse');
 			if(tipo == 'efectivo'){
 				const message = document.getElementById("message");
 				const title = document.getElementById("title");
@@ -489,21 +540,37 @@ function initApp() {
 		},
         saveBillingData() {
             let billingData;
-
-            if (this.ocasional) {
-                billingData = {
-                    nombre: this.nombre,
-                    ocasional: "S",
-                };
+        
+            // Verifica si existe 'billingDataApi' en localStorage
+            const billingDataApi = localStorage.getItem('billingDataApi');
+            
+            if (billingDataApi) {
+                // Verifica si el valor es una cadena JSON válida
+                let parsedData;
+                try {
+                    parsedData = typeof billingDataApi === 'string' ? JSON.parse(billingDataApi) : billingDataApi;
+                } catch (error) {
+                    console.error("Error al parsear 'billingDataApi':", error);
+                    return;
+                }
+                
+                // Si parsedData es un array, tomamos el primer elemento
+                if (Array.isArray(parsedData)) {
+                    billingData = { ...parsedData[0] };
+                } else {
+                    billingData = { ...parsedData }; // Si no es un array, directamente lo usamos
+                }
+        
+                // Verifica si es extranjero basado en la existencia de 'tar_exo_fiscal'
+                this.isExenta = !!parsedData.tar_exo_fiscal;
             } else {
-                billingData = {
-                    documento: this.documento,
-                    nombre: this.nombre,
-                    email: this.email,
-                    ocasional: "N",
-                };
+                // Si no hay datos en 'billingDataApi', asigna de acuerdo a los datos ingresados
+                billingData = this.ocasional ? 
+                    { nombre: this.nombre, ocasional: "S" } : 
+                    { documento: this.documento, nombre: this.nombre, email: this.email, ocasional: "N" };
             }
-
+        
+            // Guarda 'billingData' en el localStorage
             localStorage.setItem("billingData", JSON.stringify(billingData));
         },
         saveCart() {
