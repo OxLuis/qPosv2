@@ -47,7 +47,8 @@ function initApp() {
         isShowModalBill: false,
         isLoading: false,
         isAux: false,
-		isSuccess: false,
+		isError: false,
+        isSuccess: false,
 		tipoPago: '',
         currentStep: 0,
         documento: "",
@@ -264,6 +265,19 @@ function initApp() {
 					progressiveLoad: true,
 				}
 			});
+
+            const errorLottie = document.getElementById("lottieContainer-ERROR");
+			this.lottieInstance = lottie.loadAnimation({
+				container: errorLottie,
+				renderer: 'svg',
+				loop: true,
+				autoplay: true,
+				path: 'img/app/error.json',
+				rendererSettings: {
+					preserveAspectRatio: 'xMidYMid meet',
+					progressiveLoad: true,
+				}
+			});
 		},
         modalBill() {
             this.isShowModalBill = true;
@@ -376,7 +390,6 @@ function initApp() {
 			this.isShowModalReceipt = false;
             this.isShowModalBill = false;
             this.isShowModalPayment = true;
-            const combinedDataJSON = this.createCombinedJSON();
         },
         submit() {
             const time = new Date();
@@ -401,68 +414,98 @@ function initApp() {
 			this.isShowModalBill = false;
 		},
 		async pay(tipo) {
-			this.isAux = true;
-			this.isLoading = false;
-			monto = this.getTotalPrice();
+            this.isAux = true;
+            this.isLoading = false;
             const time = new Date();
-			const factura = Math.floor(time.getTime() / 10);  // Divide por 10 para reducir el número
-
-			console.log('Total a pagar: '+monto);
-			console.log('Pagando con: '+tipo)
-            if(tipo == 'qr credito' || tipo == 'qr debito'){
-				try {
-					const response = await fetch(localStorage.getItem('configProxyPos')+"/qr", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							facturaNro: factura,
-							monto: 10000,
-							vuelto: 0,
-							pos: localStorage.getItem('configBancardApi')
-						}),
-					});
-					console.log(response);
-					const data = await response.json();
-					console.log("Respuesta del servidor:", data);
-
-					localStorage.setItem('qrPaymentResponse', JSON.stringify(data));
-					this.submitOrder(tipo)
-
-				} catch (error) {
-					console.error("Error al realizar la petición:", error);
-				}
-			}
-
-			if(tipo == 'debito' || tipo == 'credito' ){
-				try {
-					const response = await fetch(localStorage.getItem('configProxyPos')+"/"+tipo, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							facturaNro: factura,
-							monto: 1000,
-							vuelto: 0,
-							pos: localStorage.getItem('configBancardApi')
-						}),
-					});
-					console.log(response);
-					const data = await response.json();
-                    localStorage.setItem('qrPaymentResponse', JSON.stringify(data));
-					console.log("Respuesta del servidor:", data);
-                    this.submitOrder(tipo)
-				} catch (error) {
-					console.error("Error al realizar la petición:", error);
-				}
-			}
-
-			if(tipo == 'efectivo'){
-				this.submitOrder(tipo);
-			}
-        },
+            const factura = Math.floor(time.getTime() / 10);  // Divide por 10 para reducir el número
+            monto = this.getTotalPrice();
+        
+            console.log('Total a pagar: ' + monto);
+            console.log('Pagando con: ' + tipo);
+        
+            if (tipo == 'qr credito' || tipo == 'qr debito') {
+                tipoPago = tipo;
+                try {
+                    const response = await fetch(localStorage.getItem('configProxyPos') + "/qr", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            facturaNro: factura,
+                            monto: monto,
+                            vuelto: 0,
+                            pos: localStorage.getItem('configBancardApi')
+                        }),
+                    });
+        
+                    if (response.ok) {  // Verifica que la respuesta sea exitosa (código de estado 2xx)
+                        const data = await response.json();
+                        console.log("Respuesta del servidor:", data);
+        
+                        localStorage.setItem('qrPaymentResponse', JSON.stringify(data));
+                        this.submitOrder(tipo);
+                    } else {
+                        // Si la respuesta no es exitosa, muestra un mensaje de error
+                        const errorData = await response.json();
+                        console.error("Error al realizar la transacción:", errorData);
+                        this.isAux = false;
+                        this.isError = true;
+                        //alert("Error al procesar el pago. Por favor, inténtelo de nuevo.");
+                    }
+        
+                } catch (error) {
+                    // Manejo de errores de red u otros errores inesperados
+                    console.error("Error al realizar la petición:", error);
+                    this.isAux = false;
+                    this.isError = true;
+                    //alert("Hubo un problema al procesar tu pago. Verifica tu conexión o intenta de nuevo.");
+                }
+            }
+        
+            if (tipo == 'debito' || tipo == 'credito') {
+                try {
+                    const response = await fetch(localStorage.getItem('configProxyPos') + "/" + tipo, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            facturaNro: factura,
+                            monto: monto,
+                            vuelto: 0,
+                            pos: localStorage.getItem('configBancardApi')
+                        }),
+                    });
+        
+                    if (response.ok) {  // Verifica que la respuesta sea exitosa (código de estado 2xx)
+                        const data = await response.json();
+                        console.log("Respuesta del servidor:", data);
+        
+                        localStorage.setItem('qrPaymentResponse', JSON.stringify(data));
+                        this.submitOrder(tipo);
+                    } else {
+                        // Si la respuesta no es exitosa, muestra un mensaje de error
+                        const errorData = await response.json();
+                        console.error("Error al realizar la transacción:", errorData);
+                        this.isAux = false;
+                        this.isError = true;
+                        //alert("Error al procesar el pago. Por favor, inténtelo de nuevo.");
+                    }
+        
+                } catch (error) {
+                    // Manejo de errores de red u otros errores inesperados
+                    console.error("Error al realizar la petición:", error);
+                    this.isAux = false;
+                    this.isError = true;
+                    //alert("Hubo un problema al procesar tu pago. Verifica tu conexión o intenta de nuevo.");
+                }
+            }
+        
+            if (tipo == 'efectivo') {
+                this.submitOrder(tipo);
+            }
+        },        
         closeModalReceipt() {
             this.isShowModalReceipt = false;
         },
@@ -522,6 +565,8 @@ function initApp() {
 		submitOrder(tipo){
 			this.isSuccess = true;
 			this.isAux = false;
+            const combinedDataJSON = this.createCombinedJSON();
+
             localStorage.removeItem('billingDataApi');
             localStorage.removeItem('qrPaymentResponse');
 			if(tipo == 'efectivo'){
