@@ -421,6 +421,7 @@ function initApp() {
 			this.isShowModalBill = false;
 		},
 		async pay(tipo) {
+            console.log('pago de tipo '+tipo)
 			this.isAux = true;
 			this.isLoading = false;
 			const time = new Date();
@@ -511,8 +512,8 @@ function initApp() {
 			}
 
 			if (tipo == 'efectivo') {
+                this.submitOrder(tipo);
                 this.tipoPago = tipo;
-				this.submitOrder(tipo);
 			}
 		},
 		closeModalReceipt() {
@@ -587,18 +588,22 @@ function initApp() {
 				}
 			);
 	
-			// Manejo de errores en la respuesta
-			if (!response.ok) {
-				throw new Error(`Error en la respuesta del servidor: ${response.status}`);
-			}
+			
 	
-			const data = await response.json();
-
-			console.log(data.message);
+			
 
 			this.isSuccess = true;
 			this.isError = false;
 			this.isAux = false;
+
+			// Manejo de errores en la respuesta
+			if (!response.ok) {
+				throw new Error(`Error en la respuesta del servidor: ${response.status}`);
+			}
+
+			const data = await response.json();
+
+			console.log(data.message);
 			
 			localStorage.removeItem('billingDataApi');
 			localStorage.removeItem('paymentData');
