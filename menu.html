@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Casa de la Chipa - Qoarto Lab PDV</title>
+    <title>Menu</title>
     <link href="./css/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
     <script src="./js/index-min.js"></script>
@@ -518,16 +518,16 @@
 							</thead>
 							<tbody>
 								<template x-for="(item, index) in cart" :key="item">
-									<tr>
-										<td class="py-2 text-center" x-text="index+1"></td>
-										<td class="py-2 text-left">
-											<span x-text="item.name"></span>
-											<br />
-											<small x-text="priceFormat(item.precio)"></small>
-										</td>
-										<td class="py-2 text-center" x-text="item.qty"></td>
-										<td class="py-2 text-right" x-text="priceFormat(item.qty * item.precio)"></td>
-									</tr>
+                                    <tr>
+                                        <td class="py-2 text-center" x-text="index+1"></td>
+                                        <td class="py-2 text-left">
+                                            <span x-text="item.name"></span>
+                                            <br />
+                                            <small x-text="priceFormat(isExenta ? item.precio / 1.1 : item.precio)"></small>
+                                        </td>
+                                        <td class="py-2 text-center" x-text="item.qty"></td>
+                                        <td class="py-2 text-right" x-text="priceFormat(item.qty * (isExenta ? item.precio / 1.1 : item.precio))"></td>
+                                    </tr>
 								</template>
 							</tbody>
 						</table>
