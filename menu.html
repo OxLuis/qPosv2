@@ -378,9 +378,12 @@
                         <div id="lottieContainer-ERROR"></div>
                         <div class="pb-4 text-center">
                             <h3 class="text-3xl font-semibold mb-1" id="title">¡ALGO SALIÓ MAL!</h3>
-                            <p class="text-lg px-4" id="message">Tuvimos un</p>
+                            <p class="text-lg px-4" id="message">Tuvimos un problema al procesar la conexiòn con el POS, por favor elija una de las siguientes opciones.</p>
                         </div>
                         <div class=" py-3">
+                            <button x-on:click="newOrder()" class="bg-gray-300 text-black text-lg px-4 py-3 mb-2 rounded-2xl w-full focus:outline-none mr-2 my-8">
+                                <h1 class="text-2xl font-semibold text-center">CANCELAR PEDIDO</h1>
+                            </button>
                             <button x-on:click="pay('efectivo')" class="text-center w-full rounded-xl qpos-bg1 shadow-xl focus:bg-white hover:qpos-bg1 px-4 py-4">
                                 <h1 class="text-2xl font-semibold text-center">TERMINAR PEDIDO EN CAJA</h1>
                             </button>
